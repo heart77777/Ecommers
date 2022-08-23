@@ -168,3 +168,98 @@ exports.updatePassword = catchAsyncError (async(req,res,next) =>{
   
 
 });
+
+// update user profile
+exports.updateProfile= catchAsyncError (async(req,res,next) =>{
+
+  const newUserData = {
+    name:req.body.name,
+    email:req.body.email,
+
+
+  }
+  // cloudinary
+  const user = await User.findByIdAndUpdate(req.user.id,newUserData,{
+    new:true,
+    runValidators:true,
+    useFindAndModiyf:false,
+    
+  });
+
+  res.status(200).json({
+success:true,
+  });
+  
+
+});
+// all user onlyl admin can acaces
+exports.getAllUser = catchAsyncError(async(req,res,next)=>{
+
+  const users = await User.find();
+  res.status(200).
+    json({
+      success:true,
+      users
+    })
+  
+});
+// get all user dataill only admin can access
+exports.getSingleUserDetail = catchAsyncError(async(req,res,next)=>{
+
+  const user = await User.findById(req.params.id);
+
+  if(!user){
+    return next(new Errorhandler(`User not exist with id ${req.params.id}`,404))
+  }
+  res.status(200).
+    json({
+      success:true,
+      user,
+    });
+  
+});
+
+// update user roel only admin can access
+exports.updatUsereProfile= catchAsyncError (async(req,res,next) =>{
+
+  const newUserData = {
+    name:req.body.name,
+    email:req.body.email,
+    role:req.body.role,
+
+  }
+ 
+  const user = await User.findByIdAndUpdate(req.params.id,newUserData,{
+    new:true,
+    runValidators:true,
+    useFindAndModiyf:false,
+    
+  });
+
+  res.status(200).json({
+success:true,
+  });
+  
+
+});
+
+// detele user --only admin access
+exports.deleteUser= catchAsyncError (async(req,res,next) =>{
+
+  const user = await User.findById(req.params.id);
+  //remove  cloudinary
+  if(!user){
+    return next(new Errorhandler(`user not found for this ${re.params.id}`,404))
+  }
+ 
+await user.remove();
+  res.status(200).json({
+success:true,
+  });
+  
+
+});
+
+
+
+

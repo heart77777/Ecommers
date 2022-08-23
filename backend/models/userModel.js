@@ -35,7 +35,7 @@ const userSechema = new mongoose.Schema({
   },
   role: {
     type: String,
-    defult: "user", //can be admin
+    defult: "User", //can be admin
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,

@@ -88,3 +88,88 @@ exports.deleteProduct = catchAsyncError(async (req, res, next) => {
   }
   await productModal.remove();
 });
+
+// creat new review or udpdate the review
+ 
+exports.createProductReview = catchAsyncError(async(req,res,next)=>{
+
+  const {rating,comment,productID} = req.body;
+  const review ={
+    user:req.user._id,
+    name:req.user.name,
+    rating:Number(rating),//rating must be number
+    comment,
+  };
+
+  const product = await Product.findById(productID);
+  const isReviewd  = product.reviews.find( (rev) => rev.user.toString() === req.user._id.toString());
+
+  if(isReviewd){
+      product.reviews.forEach((rev)=>{
+        if(rev.user.toString() === req.user._id.toString());
+       ( rev.rating = rating),(rev.comment=comment)
+      });
+  }
+  else{ // if not revied by user this happens
+    product.reviews.push(review);
+    product.numOfReviews = Product.reviews.length
+
+  }
+
+  // find average of reviews
+  let avg = 0;
+  product.reviews =  product.reviews.forEach(rev => {
+    avg +=rev.rating
+  })
+  
+  product.ratings = avg/Product.reviews.length;
+
+
+
+  await product.save({validateBeforeSave:false});
+res.status(200).json({
+  success:true
+})
+});
+
+// get all reviews for singale product 
+exports.getAllReviews = catchAsyncError(async(req,res,next)=>{
+  const product = await  Product.findById(req.query.id);
+
+  if(!Product){
+    return next(new Errorhandler("Product Not Found",404));
+  }
+ res.status(200).json({
+  success:true,
+  reviews:product.reviews,
+ })
+  
+});
+
+// delete review
+exports.deleteReview = catchAsyncError(async(req,res,next)=>{
+  const product = await Product.findById(req.query.productID);
+
+  if(!Product){
+    return next(new Errorhandler("Product Not Found",404));
+  }
+  // reviews which we don't need
+  const reviews = product.reviews.filter((rev)=>rev._id.toString() !== req.query.id.toString());
+
+  
+  let avg = 0;
+  reviews.forEach(rev => {
+    avg +=rev.rating
+  })
+  
+  const ratings = avg/reviews.length;
+  const numOfReviews = reviews.length;
+  await Product.findByIdAndUpdate(req.query.productID,{reviews,ratings,numOfReviews},{
+    new:true,
+    runValidators:true,
+    useFindAndModify:true,
+  });
+  res.status(200).json({
+    success:true,
+  });
+});
